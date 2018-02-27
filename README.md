@@ -12,7 +12,7 @@ To enable minio wagon make 3 simple steps:
   <build>
     <extensions>
       <extension>
-        <groupId>ru.migger</groupId>
+        <groupId>com.github.migger</groupId>
         <artifactId>minio-maven-wagon</artifactId>
         <version>${minio-maven-wagon}</version>
       </extension>
