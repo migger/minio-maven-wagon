@@ -5,7 +5,7 @@ This extension allows use [Minio][minio] server as artifact storage for maven
 # How to enable
 To enable minio wagon make 3 simple steps:
 
-## 1. add extension to your pom.xml
+## 1. Add extension to your pom.xml
 ```xml
 <project>
   ...
