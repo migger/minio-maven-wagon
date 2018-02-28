@@ -8,7 +8,7 @@
     <artifactId>minio-maven-wagon</artifactId>
     <version>1.1</version>
 
-    <name>Minio maven wagon</name>
+    <name>${project.groupId}:${project.artifactId}</name>
     <description>Maven transport for Minio cloud storage</description>
     <url>https://github.com/migger/minio-maven-wagon</url>
 
@@ -19,6 +19,14 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <developers>
+        <developer>
+            <name>Igor Mikhaylyuk</name>
+            <email>migger@yandex.ru</email>
+            <url>https://github.com/migger/</url>
+        </developer>
+    </developers>
 
     <scm>
         <url>https://github.com/migger/minio-maven-wagon.git</url>
@@ -96,6 +104,17 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.7</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
             </plugin>
         </plugins>
     </build>
