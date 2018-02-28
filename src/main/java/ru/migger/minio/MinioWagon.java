@@ -3,30 +3,21 @@ package ru.migger.minio;
 
 import io.minio.MinioClient;
 import io.minio.errors.ErrorResponseException;
-import org.apache.maven.wagon.AbstractWagon;
-import org.apache.maven.wagon.ConnectionException;
-import org.apache.maven.wagon.ResourceDoesNotExistException;
-import org.apache.maven.wagon.TransferFailedException;
+import org.apache.maven.wagon.*;
 import org.apache.maven.wagon.authentication.AuthenticationException;
 import org.apache.maven.wagon.authorization.AuthorizationException;
-import org.apache.maven.wagon.events.SessionEvent;
-import org.apache.maven.wagon.events.TransferListener;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
-public class MinioWagon extends AbstractWagon {
+public class MinioWagon extends StreamWagon {
     private volatile MinioClient minioClient;
     private volatile String bucketName;
     private volatile String baseDirectory;
-    private final List<TransferListener> transferListeners = new ArrayList<>();
-
     @Override
     protected void openConnectionInternal() throws ConnectionException, AuthenticationException {
         if (minioClient == null) {
-            sessionEventSupport.fireSessionOpening(new SessionEvent(this, SessionEvent.SESSION_OPENING));
             try {
                 {
                     String user = System.getenv("MINIO_USER");
@@ -69,16 +60,9 @@ public class MinioWagon extends AbstractWagon {
     }
 
     @Override
-    protected void closeConnection() throws ConnectionException {
-        this.minioClient = null;
-        this.bucketName = null;
-        this.baseDirectory = null;
-    }
-
-    @Override
-    public void get(String resourceName, File destination) throws TransferFailedException, ResourceDoesNotExistException, AuthorizationException {
+    public void fillInputData(InputData inputData) throws TransferFailedException, ResourceDoesNotExistException, AuthorizationException {
         try {
-            minioClient.getObject(this.bucketName, this.baseDirectory + resourceName, destination.getAbsolutePath());
+            inputData.setInputStream(minioClient.getObject(this.bucketName, this.baseDirectory + inputData.getResource().getName()));
         } catch (ErrorResponseException e) {
             if (e.errorResponse().code().equals("NoSuchKey")) {
                 throw new ResourceDoesNotExistException(e.getMessage(), e);
@@ -90,35 +74,23 @@ public class MinioWagon extends AbstractWagon {
     }
 
     @Override
-    public boolean getIfNewer(String resourceName, File destination, long timestamp) throws TransferFailedException, ResourceDoesNotExistException, AuthorizationException {
-        try {
-            if (minioClient.statObject(this.bucketName, this.baseDirectory + resourceName).createdTime().after(new Date(timestamp))) {
-                return false;
+    public void fillOutputData(OutputData outputData) throws TransferFailedException {
+        outputData.setOutputStream(new ByteArrayOutputStream() {
+            @Override
+            public void close() throws IOException {
+                try {
+                    minioClient.putObject(bucketName, baseDirectory + outputData.getResource().getName(), new ByteArrayInputStream(toByteArray()), null);
+                } catch (Exception e) {
+                    throw new IOException(e);
+                }
             }
-            minioClient.getObject(this.bucketName, this.baseDirectory + resourceName, destination.getAbsolutePath());
-            return true;
-        } catch (ErrorResponseException e) {
-            if (e.errorResponse().code().equals("NoSuchKey")) {
-                throw new ResourceDoesNotExistException(e.getMessage(), e);
-            }
-            throw new TransferFailedException(e.getMessage(), e);
-        } catch (Exception e) {
-            throw new TransferFailedException(e.getMessage(), e);
-        }
+        });
     }
 
     @Override
-    public void put(File source, String destination) throws TransferFailedException, ResourceDoesNotExistException, AuthorizationException {
-        try {
-            minioClient.putObject(this.bucketName, this.baseDirectory + destination, source.getAbsolutePath());
-        } catch (ErrorResponseException e) {
-            if (e.errorResponse().code().equals("NoSuchKey")) {
-                throw new ResourceDoesNotExistException(e.getMessage(), e);
-            }
-            throw new TransferFailedException(e.getMessage(), e);
-        } catch (Exception e) {
-            throw new TransferFailedException(e.getMessage(), e);
-        }
-
+    public void closeConnection() throws ConnectionException {
+        minioClient = null;
+        bucketName = null;
+        baseDirectory = null;
     }
 }

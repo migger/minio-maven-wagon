@@ -7,6 +7,7 @@
     <groupId>com.github.migger</groupId>
     <artifactId>minio-maven-wagon</artifactId>
     <version>1.0-SNAPSHOT</version>
+
     <name>Minio maven wagon</name>
     <description>Maven transport for Minio cloud storage</description>
     <url>https://github.com/migger/minio-maven-wagon</url>
@@ -42,8 +43,18 @@
             <version>2.6</version>
             <scope>provided</scope>
         </dependency>
-
     </dependencies>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>central-nexus-oss-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>central-nexus-oss-releases</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
+    </distributionManagement>
 
 
 </project>
