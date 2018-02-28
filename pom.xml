@@ -6,7 +6,7 @@
 
     <groupId>com.github.migger</groupId>
     <artifactId>minio-maven-wagon</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
 
     <name>Minio maven wagon</name>
     <description>Maven transport for Minio cloud storage</description>
